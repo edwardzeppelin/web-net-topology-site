@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Топологии локальных сетей</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding-top: 60px;
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+        }
+        
+        .navbar {
+            background-color: var(--primary-color) !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--light-color) !important;
+        }
+        
+        .nav-link {
+            color: var(--light-color) !important;
+            font-weight: 500;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            color: var(--secondary-color) !important;
+            transform: translateY(-2px);
+        }
+        
+        .tab-content {
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+            margin-top: 20px;
+        }
+        
+        h1, h2, h3 {
+            color: var(--primary-color);
+        }
+        
+        .topology-card {
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .topology-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-img-top {
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+        
+        .gallery-container {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .gallery-slide {
+            display: none;
+            animation: fade 0.5s ease-in-out;
+        }
+        
+        .gallery-slide.active {
+            display: block;
+        }
+        
+        .gallery-img {
+            width: 100%;
+            height: 400px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        
+        .gallery-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+        
+        .gallery-nav:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        
+        .gallery-prev {
+            left: 15px;
+        }
+        
+        .gallery-next {
+            right: 15px;
+        }
+        
+        .gallery-indicators {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .gallery-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #ccc;
+            margin: 0 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .gallery-indicator.active {
+            background-color: var(--secondary-color);
+            transform: scale(1.2);
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fade {
+            from {opacity: 0.4;}
+            to {opacity: 1;}
+        }
+        
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .form-label {
+            font-weight: 500;
+        }
+        
+        .required-field::after {
+            content: " *";
+            color: var(--accent-color);
+        }
+        
+        .error-message {
+            color: var(--accent-color);
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+        
+        footer {
+            background-color: var(--primary-color);
+            color: var(--light-color);
+            padding: 20px 0;
+            margin-top: 40px;
+            text-align: center;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 1200px) {
+            .gallery-img {
+                height: 350px;
+            }
+        }
+        
+        @media (max-width: 800px) {
+            body {
+                padding-top: 70px;
+            }
+            
+            .gallery-img {
+                height: 300px;
+            }
+            
+            .topology-card {
+                margin-bottom: 15px;
+            }
+        }
+        
+        @media (max-width: 550px) {
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+            
+            .nav-link {
+                font-size: 0.9rem;
+                padding: 0.5rem;
+            }
+            
+            .gallery-img {
+                height: 200px;
+            }
+            
+            .gallery-nav {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Навигационное меню -->
+        <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+            <div class="container">
+                <a class="navbar-brand" href="#">Топологии локальных сетей</a>
+                <button class="navbar-toggler" type="button" @click="toggleNavbar">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" :class="{show: navbarOpen}">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" :class="{active: activeTab === 'home'}" @click="changeTab('home')">Главная</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" :class="{active: activeTab === 'types'}" @click="changeTab('types')">Типы топологий</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" :class="{active: activeTab === 'gallery'}" @click="changeTab('gallery')">Галерея</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" :class="{active: activeTab === 'comparison'}" @click="changeTab('comparison')">Сравнение</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" :class="{active: activeTab === 'contact'}" @click="changeTab('contact')">Обратная связь</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Основное содержимое -->
+        <div class="container my-4">
+            <!-- Главная вкладка -->
+            <div v-if="activeTab === 'home'" class="tab-content">
+                <h1 class="mb-4">Топологии локальных сетей</h1>
+                <p>Локальная вычислительная сеть (ЛВС) - это компьютерная сеть, покрывающая относительно небольшую территорию, такую как дом, офис или небольшую группу зданий. Одним из ключевых аспектов проектирования ЛВС является выбор топологии сети.</p>
+                
+                <h2 class="mt-5">Что такое топология сети?</h2>
+                <p>Топология сети - это способ описания конфигурации сети, схема расположения и соединения сетевых устройств. Топология определяет, как компьютеры, принтеры и другие устройства подключены в сети.</p>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card topology-card">
+                            <div class="card-body">
+                                <h5 class="card-title">Физическая топология</h5>
+                                <p class="card-text">Описывает реальное физическое расположение и соединение узлов сети. Она показывает, как кабели проложены и как устройства физически подключены друг к другу.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card topology-card">
+                            <div class="card-body">
+                                <h5 class="card-title">Логическая топология</h5>
+                                <p class="card-text">Описывает то, как данные фактически передаются в сети. Она может отличаться от физической топологии. Например, в сети с физической топологией "звезда" может использоваться логическая топология "кольцо".</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 class="mt-5">Почему важна топология?</h2>
+                <p>Выбор топологии влияет на многие аспекты работы сети:</p>
+                <ul>
+                    <li>Производительность сети</li>
+                    <li>Масштабируемость</li>
+                    <li>Надежность и отказоустойчивость</li>
+                    <li>Стоимость развертывания и обслуживания</li>
+                    <li>Сложность управления</li>
+                </ul>
+            </div>
+
+            <!-- Вкладка с типами топологий -->
+            <div v-if="activeTab === 'types'" class="tab-content">
+                <h1 class="mb-4">Основные типы топологий локальных сетей</h1>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card topology-card">
+                            <img src="Bus_topology.png" class="card-img-top" alt="Шинная топология">
+                            <div class="card-body">
+                                <h5 class="card-title">Шинная</h5>
+                                <p class="card-text">Все устройства подключены к одному центральному кабелю (шине). Простая и недорогая в реализации, но при обрыве кабеля вся сеть перестает работать.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card topology-card">
+                            <img src="Star_topology.png" class="card-img-top" alt="Звездообразная топология">
+                            <div class="card-body">
+                                <h5 class="card-title">Звезда</h5>
+                                <p class="card-text">Все устройства подключены к центральному узлу (концентратору или коммутатору). Отказ одного устройства не влияет на работу остальных, но выход из строя центрального узла парализует всю сеть.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card topology-card">
+                            <img src="Ring_topology.png" class="card-img-top" alt="Кольцевая топология">
+                            <div class="card-body">
+                                <h5 class="card-title">Кольцо</h5>
+                                <p class="card-text">Устройства соединены в замкнутый круг, где данные передаются в одном направлении. Обеспечивает равный доступ к сети для всех узлов, но обрыв кабеля нарушает работу всей сети.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card topology-card">
+                            <img src="Full_topology.png" class="card-img-top" alt="Ячеистая топология">
+                            <div class="card-body">
+                                <h5 class="card-title">Ячеистая</h5>
+                                <p class="card-text">Каждое устройство соединено со всеми остальными. Обеспечивает высокую отказоустойчивость, но требует большого количества соединений и сложна в управлении.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card topology-card">
+                            <img src="Tree_tech.png" class="card-img-top" alt="Древовидная топология">
+                            <div class="card-body">
+                                <h5 class="card-title">Древовидная</h5>
+                                <p class="card-text">Комбинация звездообразных и шинных топологий. Позволяет масштабировать сеть, но выход из строя корневого узла может нарушить работу всей сети.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка с галереей -->
+            <div v-if="activeTab === 'gallery'" class="tab-content">
+                <h1 class="mb-4">Галерея топологий сетей</h1>
+                
+                <div class="gallery-container">
+                    <div v-for="(image, index) in galleryImages" :key="index" 
+                         class="gallery-slide" :class="{active: currentImageIndex === index}">
+                        <img :src="image.src" class="gallery-img" :alt="image.title">
+                        <div class="text-center mt-3">
+                            <h4>{{ image.title }}</h4>
+                            <p>{{ image.description }}</p>
+                        </div>
+                    </div>
+                    
+                    <button class="gallery-nav gallery-prev" @click="prevImage">❮</button>
+                    <button class="gallery-nav gallery-next" @click="nextImage">❯</button>
+                    
+                    <div class="gallery-indicators">
+                        <span v-for="(image, index) in galleryImages" :key="index" 
+                              class="gallery-indicator" :class="{active: currentImageIndex === index}"
+                              @click="goToImage(index)"></span>
+                    </div>
+                </div>
+                
+                <div class="row mt-5">
+                    <div class="col-md-4 col-sm-6 mb-4" v-for="(image, index) in galleryImages" :key="index">
+                        <img :src="image.src" class="img-thumbnail" style="cursor: pointer; height: 150px; width: 100%; object-fit: cover;" 
+                             @click="goToImage(index)" :alt="image.title">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка с сравнением -->
+            <div v-if="activeTab === 'comparison'" class="tab-content">
+                <h1 class="mb-4">Сравнение топологий локальных сетей</h1>
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Топология</th>
+                                <th>Преимущества</th>
+                                <th>Недостатки</th>
+                                <th>Применение</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Шинная</td>
+                                <td>
+                                    <ul>
+                                        <li>Простота установки</li>
+                                        <li>Малый расход кабеля</li>
+                                        <li>Дешевизна</li>
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                        <li>Низкая надежность</li>
+                                        <li>Низкая производительность</li>
+                                        <li>Сложность диагностики неисправностей</li>
+                                    </ul>
+                                </td>
+                                <td>Небольшие офисы, учебные классы</td>
+                            </tr>
+                            <tr>
+                                <td>Звезда</td>
+                                <td>
+                                    <ul>
+                                        <li>Высокая надежность</li>
+                                        <li>Легкость добавления новых узлов</li>
+                                        <li>Простота диагностики</li>
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                        <li>Зависимость от центрального узла</li>
+                                        <li>Большой расход кабеля</li>
+                                    </ul>
+                                </td>
+                                <td>Офисные сети, домашние сети</td>
+                            </tr>
+                            <tr>
+                                <td>Кольцо</td>
+                                <td>
+                                    <ul>
+                                        <li>Равный доступ для всех узлов</li>
+                                        <li>Хорошая масштабируемость</li>
+                                        <li>Предсказуемое время передачи</li>
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                        <li>Выход из строя одного узла нарушает работу сети</li>
+                                        <li>Сложность добавления новых узлов</li>
+                                    </ul>
+                                </td>
+                                <td>Сети с детерминированным доступом</td>
+                            </tr>
+                            <tr>
+                                <td>Ячеистая</td>
+                                <td>
+                                    <ul>
+                                        <li>Высокая отказоустойчивость</li>
+                                        <li>Высокая производительность</li>
+                                        <li>Равномерное распределение нагрузки</li>
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                        <li>Большой расход кабеля</li>
+                                        <li>Сложность настройки и управления</li>
+                                        <li>Высокая стоимость</li>
+                                    </ul>
+                                </td>
+                                <td>Критически важные сети, военные сети</td>
+                            </tr>
+                            <tr>
+                                <td>Древовидная</td>
+                                <td>
+                                    <ul>
+                                        <li>Хорошая масштабируемость</li>
+                                        <li>Гибкость структуры</li>
+                                        <li>Локализация трафика</li>
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                        <li>Зависимость от корневого узла</li>
+                                        <li>Сложность настройки</li>
+                                    </ul>
+                                </td>
+                                <td>Крупные корпоративные сети, кампусные сети</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Выбор топологии</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>При выборе топологии сети следует учитывать:</p>
+                                <ul>
+                                    <li>Размер сети и планируемый рост</li>
+                                    <li>Бюджет на оборудование и кабельную инфраструктуру</li>
+                                    <li>Требования к надежности и отказоустойчивости</li>
+                                    <li>Ожидаемую нагрузку на сеть</li>
+                                    <li>Квалификацию персонала, который будет обслуживать сеть</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Современные тенденции</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>В современных сетях часто используются гибридные топологии, сочетающие преимущества нескольких базовых топологий. Например:</p>
+                                <ul>
+                                    <li>Звезда-кольцо</li>
+                                    <li>Звезда-шина</li>
+                                    <li>Частично ячеистые сети</li>
+                                </ul>
+                                <p>Также популярны беспроводные топологии, которые могут имитировать любую из проводных топологий.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка с формой обратной связи -->
+            <div v-if="activeTab === 'contact'" class="tab-content">
+                <h1 class="mb-4">Обратная связь</h1>
+                
+                <form @submit.prevent="submitForm" novalidate>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label required-field">Ваше имя</label>
+                            <input type="text" class="form-control" id="name" v-model="form.name" @blur="validateField('name')">
+                            <div class="error-message" v-if="errors.name">{{ errors.name }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label required-field">Email</label>
+                            <input type="email" class="form-control" id="email" v-model="form.email" @blur="validateField('email')">
+                            <div class="error-message" v-if="errors.email">{{ errors.email }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Тема сообщения</label>
+                        <input type="text" class="form-control" id="subject" v-model="form.subject">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="message" class="form-label required-field">Сообщение</label>
+                        <textarea class="form-control" id="message" rows="5" v-model="form.message" @blur="validateField('message')"></textarea>
+                        <div class="error-message" v-if="errors.message">{{ errors.message }}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Какую топологию вы используете?</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="topology1" value="Шинная" v-model="form.topologies">
+                            <label class="form-check-label" for="topology1">Шинная</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="topology2" value="Звезда" v-model="form.topologies">
+                            <label class="form-check-label" for="topology2">Звезда</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="topology3" value="Кольцо" v-model="form.topologies">
+                            <label class="form-check-label" for="topology3">Кольцо</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="topology4" value="Ячеистая" v-model="form.topologies">
+                            <label class="form-check-label" for="topology4">Ячеистая</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="topology5" value="Другая" v-model="form.topologies">
+                            <label class="form-check-label" for="topology5">Другая</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Как часто вы сталкиваетесь с проблемами в сети?</label>
+                        <select class="form-select" v-model="form.frequency">
+                            <option value="" disabled selected>Выберите вариант</option>
+                            <option value="daily">Ежедневно</option>
+                            <option value="weekly">Еженедельно</option>
+                            <option value="monthly">Ежемесячно</option>
+                            <option value="rarely">Редко</option>
+                            <option value="never">Никогда</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="subscribe" v-model="form.subscribe">
+                        <label class="form-check-label" for="subscribe">Подписаться на рассылку</label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Отправить</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Модальное окно -->
+        <div class="modal-overlay" v-if="showModal">
+            <div class="modal-content">
+                <div v-if="formSuccess">
+                    <h3 class="text-success">Успех!</h3>
+                    <p>Ваше сообщение успешно отправлено. Мы свяжемся с вами в ближайшее время.</p>
+                    <p>Имя: {{ form.name }}</p>
+                    <p>Email: {{ form.email }}</p>
+                    <p v-if="form.subject">Тема: {{ form.subject }}</p>
+                    <button class="btn btn-success mt-3" @click="closeModal">Закрыть</button>
+                </div>
+                <div v-else>
+                    <h3 class="text-danger">Ошибка!</h3>
+                    <p>Пожалуйста, исправьте следующие ошибки:</p>
+                    <ul>
+                        <li v-for="(error, field) in errors" :key="field" v-if="error">{{ error }}</li>
+                    </ul>
+                    <button class="btn btn-danger mt-3" @click="closeModal">Понятно</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Футер -->
+        <footer>
+            <div class="container">
+                <p class="mb-0">© 2023 Топологии локальных сетей. Все права защищены.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, computed, onMounted } = Vue;
+        
+        createApp({
+            setup() {
+                // Состояние навигации
+                const activeTab = ref('home');
+                const navbarOpen = ref(false);
+                
+                // Состояние галереи
+                const currentImageIndex = ref(0);
+                const galleryImages = ref([
+                    {
+                        src: 'Bus_topology.png',
+                        title: 'Шинная топология',
+                        description: 'Все устройства подключены к одному центральному кабелю (шине).'
+                    },
+                    {
+                        src: 'Star_topology.png',
+                        title: 'Звездообразная топология',
+                        description: 'Все устройства подключены к центральному узлу (концентратору или коммутатору).'
+                    },
+                    {
+                        src: 'Ring_topology.png',
+                        title: 'Кольцевая топология',
+                        description: 'Устройства соединены в замкнутый круг, где данные передаются в одном направлении.'
+                    },
+                    {
+                        src: 'Full_topology.png',
+                        title: 'Ячеистая топология',
+                        description: 'Каждое устройство соединено со всеми остальными устройствами в сети.'
+                    },
+                    {
+                        src: 'Tree_tech.png',
+                        title: 'Древовидная топология',
+                        description: 'Комбинация звездообразных и шинных топологий, образующая иерархическую структуру.'
+                    }
+                ]);
+                
+                // Состояние формы
+                const form = reactive({
+                    name: '',
+                    email: '',
+                    subject: '',
+                    message: '',
+                    topologies: [],
+                    frequency: '',
+                    subscribe: false
+                });
+                
+                const errors = reactive({
+                    name: '',
+                    email: '',
+                    message: ''
+                });
+                
+                const showModal = ref(false);
+                const formSuccess = ref(false);
+                
+                // Методы
+                const changeTab = (tab) => {
+                    activeTab.value = tab;
+                    navbarOpen.value = false;
+                    window.scrollTo(0, 0);
+                };
+                
+                const toggleNavbar = () => {
+                    navbarOpen.value = !navbarOpen.value;
+                };
+                
+                const nextImage = () => {
+                    currentImageIndex.value = (currentImageIndex.value + 1) % galleryImages.value.length;
+                };
+                
+                const prevImage = () => {
+                    currentImageIndex.value = (currentImageIndex.value - 1 + galleryImages.value.length) % galleryImages.value.length;
+                };
+                
+                const goToImage = (index) => {
+                    currentImageIndex.value = index;
+                };
+                
+                const validateField = (field) => {
+                    if (field === 'name') {
+                        if (!form.name.trim()) {
+                            errors.name = 'Пожалуйста, введите ваше имя';
+                        } else if (form.name.trim().length < 2) {
+                            errors.name = 'Имя должно содержать не менее 2 символов';
+                        } else {
+                            errors.name = '';
+                        }
+                    } else if (field === 'email') {
+                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (!form.email.trim()) {
+                            errors.email = 'Пожалуйста, введите ваш email';
+                        } else if (!emailRegex.test(form.email)) {
+                            errors.email = 'Пожалуйста, введите корректный email';
+                        } else {
+                            errors.email = '';
+                        }
+                    } else if (field === 'message') {
+                        if (!form.message.trim()) {
+                            errors.message = 'Пожалуйста, введите ваше сообщение';
+                        } else if (form.message.trim().length < 10) {
+                            errors.message = 'Сообщение должно содержать не менее 10 символов';
+                        } else {
+                            errors.message = '';
+                        }
+                    }
+                };
+                
+                const validateForm = () => {
+                    validateField('name');
+                    validateField('email');
+                    validateField('message');
+                    
+                    return !errors.name && !errors.email && !errors.message;
+                };
+                
+                const submitForm = () => {
+                    const isValid = validateForm();
+                    
+                    if (isValid) {
+                        formSuccess.value = true;
+                        showModal.value = true;
+                    } else {
+                        formSuccess.value = false;
+                        showModal.value = true;
+                    }
+                };
+                
+                const closeModal = () => {
+                    showModal.value = false;
+                };
+                
+                // Автоматическая смена слайдов
+                onMounted(() => {
+                    setInterval(() => {
+                        if (activeTab.value === 'gallery') {
+                            nextImage();
+                        }
+                    }, 5000);
+                });
+                
+                return {
+                    activeTab,
+                    navbarOpen,
+                    currentImageIndex,
+                    galleryImages,
+                    form,
+                    errors,
+                    showModal,
+                    formSuccess,
+                    changeTab,
+                    toggleNavbar,
+                    nextImage,
+                    prevImage,
+                    goToImage,
+                    validateField,
+                    submitForm,
+                    closeModal
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
