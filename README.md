@@ -21,10 +21,10 @@ A simple single-page website that explains different types of local network topo
 No build step or Node.js environment is required.
 
 1. Download or clone this repository.
-2. Make sure all diagram images are in the same folder as `lab4.html`:
+2. Make sure all diagram images are in the same folder as `topology.html`:
    - `Bus_topology.png`
    - `Star_topology.png`
    - `Ring_topology.png`
    - `Full_topology.png`
    - `Tree_tech.png`
-3. Double-click `lab4.html` to open it in any web browser (or run it via VS Code's Live Server).
+3. Double-click `topology.html` to open it in any web browser (or run it via VS Code's Live Server).
